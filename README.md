@@ -30,26 +30,17 @@ npm run dev
 
 ## Déploiement sur Cloudflare
 
-1. Connexion à Cloudflare :
-   ```bash
-   npx wrangler login
-   ```
-2. Création de la base D1 :
-   ```bash
-   npx wrangler d1 create activites-it
-   ```
-   Copiez le `database_id` affiché dans `wrangler.jsonc` (à la place de `00000000-…`), puis commitez.
-3. Création des tables en production :
-   ```bash
-   npm run db:migrate:remote
-   ```
-4. Déploiement, au choix :
-   - **Depuis Git (recommandé)** : poussez le dépôt sur GitHub, puis dans Cloudflare → *Workers & Pages* → *Create* → *Import a repository*.
-     - Build command : `npm run build`
-     - Deploy command : `npx wrangler deploy`
-   - **Depuis votre poste** : `npm run deploy`
+Le dépôt est relié à Cloudflare (*Workers & Pages* → *Import a repository*) :
 
-L'application est alors disponible sur `https://hps-activites-it.<votre-sous-domaine>.workers.dev`.
+- Build command : `npm run build`
+- Deploy command : `npx wrangler deploy`
+
+Chaque push sur `main` redéploie l'application. Aucune configuration de base n'est nécessaire :
+
+- au premier déploiement, `wrangler deploy` crée la base D1 `activites-it` (aucun `database_id` à renseigner) ;
+- au premier appel de l'API, le Worker crée les tables (`migrations/0001_init.sql`).
+
+L'application est disponible sur `https://activites-it.<votre-sous-domaine>.workers.dev`.
 
 > Le premier qui ouvre un emplacement de profil vide le crée. Après le déploiement, demandez aux 3 membres de l'équipe de créer leur profil rapidement.
 
@@ -60,6 +51,8 @@ Réinitialisez le mot de passe (les tâches sont conservées) :
 ```bash
 npx wrangler d1 execute activites-it --remote --command "UPDATE profiles SET pass_hash = '' WHERE slot = 1"
 ```
+
+La même requête SQL peut aussi être lancée depuis le tableau de bord Cloudflare : *Storage & Databases* → *D1* → `activites-it` → *Console*.
 
 Remplacez `1` par le numéro du profil (1, 2 ou 3). À la connexion suivante, le mot de passe saisi devient le nouveau mot de passe.
 

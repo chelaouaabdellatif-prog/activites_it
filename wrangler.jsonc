@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "hps-activites-it",
+  "name": "activites-it",
   "main": "worker/index.js",
   "compatibility_date": "2026-09-01",
   "assets": {
@@ -11,9 +11,9 @@
   "d1_databases": [
     {
       "binding": "DB",
+      // Pas de database_id : « wrangler deploy » crée la base au premier déploiement
+      // puis la réutilise (lien conservé par le Worker).
       "database_name": "activites-it",
-      // Remplacer par l'ID renvoyé par : npx wrangler d1 create activites-it
-      "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
   ],

@@ -1,4 +1,5 @@
 import { CATEGORY_BY_ID, MAX_PROFILES, STATUS_BY_ID } from '../src/shared/catalog.js'
+import schemaSql from '../migrations/0001_init.sql?raw'
 
 const SESSION_COOKIE = 'hps_session'
 const SESSION_DAYS = 30
@@ -265,11 +266,30 @@ async function handleApi(request, env, url) {
   return fail(404, 'Route inconnue.')
 }
 
+// Crée les tables si besoin (une fois par instance) : une base D1 neuve fonctionne sans migration manuelle.
+let schemaReady = null
+function ensureSchema(env) {
+  if (!schemaReady) {
+    const statements = schemaSql
+      .replace(/--.*$/gm, '')
+      .split(';')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((s) => env.DB.prepare(s))
+    schemaReady = env.DB.batch(statements).catch((err) => {
+      schemaReady = null
+      throw err
+    })
+  }
+  return schemaReady
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request)
     try {
+      await ensureSchema(env)
       return await handleApi(request, env, url)
     } catch (err) {
       if (err instanceof HttpError) return fail(err.status, err.message)
