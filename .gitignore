@@ -1,0 +1,12 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+*.local
+.DS_Store
+# Rapports Excel (données personnelles) et fichiers verrou Office
+*.xlsx
+~$*
+
+# Config locale Claude (chemins propres à ce poste)
+.claude/

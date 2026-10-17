@@ -1,0 +1,25 @@
+{
+  "name": "hps-activites-it",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "npm run build && vite preview",
+    "db:migrate:local": "wrangler d1 migrations apply activites-it --local",
+    "db:migrate:remote": "wrangler d1 migrations apply activites-it --remote",
+    "deploy": "npm run build && wrangler d1 migrations apply activites-it --remote && wrangler deploy"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.64.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.4",
+    "wrangler": "^4.151.1"
+  }
+}
