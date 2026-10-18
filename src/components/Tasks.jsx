@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES, STATUSES } from '../shared/catalog.js'
-import { fmtDate, inMonth, isLate, monthLabel } from '../lib.js'
+import { fmtDateTime, inMonth, isLate, monthLabel } from '../lib.js'
 import { CategoryChip, Icon, MonthPicker, Progress, StatusChip } from './ui.jsx'
 
 export default function Tasks({ tasks, month, setMonth, onEdit, onComplete, onDelete, onNew }) {
@@ -85,7 +85,7 @@ export default function Tasks({ tasks, month, setMonth, onEdit, onComplete, onDe
                     <Progress value={t.progress} task={t} />
                   </td>
                   <td className="hide-sm num" style={{ whiteSpace: 'nowrap' }}>
-                    {fmtDate(t.start_date)} → {t.end_date ? fmtDate(t.end_date) : '…'}
+                    {fmtDateTime(t.start_date, t.start_time)} → {t.end_date ? fmtDateTime(t.end_date, t.end_time) : '…'}
                   </td>
                   <td className="hide-sm num">{t.count}</td>
                   <td className="acts">

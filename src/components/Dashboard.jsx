@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES } from '../shared/catalog.js'
-import { api, fmtDate, inMonth, initials, isLate, monthLabel, pct, stats } from '../lib.js'
+import { api, fmtDateTime, inMonth, initials, isLate, monthLabel, pct, stats } from '../lib.js'
 import { CategoryChip, Icon, MonthPicker, Progress, StatusChip } from './ui.jsx'
 
 function TaskItem({ t, me, showWho, onEdit, onComplete }) {
@@ -15,7 +15,7 @@ function TaskItem({ t, me, showWho, onEdit, onComplete }) {
         {t.status !== 'terminee' ? (
           <span className="pc">{t.progress}%</span>
         ) : (
-          <span className="muted num" style={{ fontSize: 12.5 }}>{fmtDate(t.end_date)}</span>
+          <span className="muted num" style={{ fontSize: 12.5 }}>{fmtDateTime(t.end_date, t.end_time)}</span>
         )}
       </div>
       {t.status !== 'terminee' && <Progress value={t.progress} task={t} />}
@@ -23,7 +23,7 @@ function TaskItem({ t, me, showWho, onEdit, onComplete }) {
         <CategoryChip id={t.category} />
         {t.subcategory && <span>{t.subcategory}</span>}
         <span className="num">
-          {fmtDate(t.start_date)} → {t.end_date ? fmtDate(t.end_date) : '…'}
+          {fmtDateTime(t.start_date, t.start_time)} → {t.end_date ? fmtDateTime(t.end_date, t.end_time) : '…'}
         </span>
         {t.status !== 'terminee' && <StatusChip task={t} />}
         {showWho && <span className="chip who">{t.profile_name}</span>}

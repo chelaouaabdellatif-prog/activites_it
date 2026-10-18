@@ -6,7 +6,7 @@ import Report from './components/Report.jsx'
 import TaskForm from './components/TaskForm.jsx'
 import Settings from './components/Settings.jsx'
 import { Icon } from './components/ui.jsx'
-import { api, currentMonth, initials } from './lib.js'
+import { api, currentMonth, initials, nowTime, todayIso } from './lib.js'
 
 const VIEWS = [
   { id: 'accueil', label: 'Accueil', icon: 'home' },
@@ -75,7 +75,8 @@ export default function App() {
 
   async function completeTask(t) {
     try {
-      const { task } = await api(`/api/tasks/${t.id}`, { method: 'PUT', body: { ...t, status: 'terminee', progress: 100 } })
+      const end = t.end_date ? {} : { end_date: todayIso(), end_time: nowTime() }
+      const { task } = await api(`/api/tasks/${t.id}`, { method: 'PUT', body: { ...t, ...end, status: 'terminee', progress: 100 } })
       setTasks((list) => list.map((x) => (x.id === task.id ? task : x)))
       notify('Tâche marquée comme terminée ✔')
     } catch (err) {

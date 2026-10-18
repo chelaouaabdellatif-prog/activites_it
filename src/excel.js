@@ -26,10 +26,11 @@ const fill = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } }
 const font = (o = {}) => ({ name: FONT, size: 10, color: { argb: C.ink }, ...o, color: { argb: o.color || C.ink } })
 const thin = (argb = C.line) => ({ style: 'thin', color: { argb } })
 
-const toDate = (iso) => {
+const toDate = (iso, hhmm) => {
   if (!iso) return null
   const [y, m, d] = iso.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d))
+  const [h, min] = (hhmm || '0:0').split(':').map(Number)
+  return new Date(Date.UTC(y, m - 1, d, h, min))
 }
 
 function style(cell, { f, bg, align, border, numFmt } = {}) {
@@ -103,7 +104,7 @@ function sheetReport(wb, { profile, month, tasks, destinataire, logoId }) {
     properties: { tabColor: { argb: C.orange } },
     views: [{ state: 'frozen', ySplit: 8, showGridLines: false, zoomScale: 85 }],
   })
-  const widths = [6, 26, 24, 42, 14, 12, 12, 12, 9, 9, 24, 56]
+  const widths = [6, 26, 24, 42, 14, 12, 16, 16, 9, 9, 24, 56]
   ws.columns = widths.map((width) => ({ width }))
   const s = stats(tasks)
   const { start, end } = monthBounds(month)
@@ -203,8 +204,8 @@ function sheetReport(wb, { profile, month, tasks, destinataire, logoId }) {
         (t.highlight ? '⭐ ' : '') + t.title,
         st.label,
         (Number(t.progress) || 0) / 100,
-        toDate(t.start_date),
-        toDate(t.status === 'terminee' ? t.end_date || t.start_date : t.end_date),
+        toDate(t.start_date, t.start_time),
+        t.status === 'terminee' && !t.end_date ? toDate(t.start_date) : toDate(t.end_date, t.end_time),
         durationDays(t),
         t.status === 'terminee' ? Number(t.count) || 1 : Number(t.count) || null,
         t.beneficiary || '—',
@@ -219,7 +220,9 @@ function sheetReport(wb, { profile, month, tasks, destinataire, logoId }) {
       style(row.getCell(4), { f: { bold: true }, bg: C.white, align: { indent: 1 }, border: rowBorder })
       style(row.getCell(5), { f: { bold: true, color: st.color }, bg: st.bg, align: { horizontal: 'center' }, border: rowBorder })
       style(row.getCell(6), { f: { bold: true, size: 11, color: t.progress >= 100 ? C.green : C.orange }, bg: C.orangeTint, align: { horizontal: 'center' }, border: rowBorder, numFmt: '0%' })
-      ;[7, 8].forEach((ci) => style(row.getCell(ci), { bg: C.white, align: { horizontal: 'center' }, border: rowBorder, numFmt: 'dd/mm/yyyy' }))
+      ;[[7, t.start_time], [8, t.end_date && t.end_time]].forEach(([ci, hasTime]) =>
+        style(row.getCell(ci), { bg: C.white, align: { horizontal: 'center' }, border: rowBorder, numFmt: hasTime ? 'dd/mm/yyyy hh:mm' : 'dd/mm/yyyy' }),
+      )
       ;[9, 10].forEach((ci) => style(row.getCell(ci), { f: { bold: true }, bg: C.white, align: { horizontal: 'center' }, border: rowBorder, numFmt: '0' }))
       style(row.getCell(11), { bg: C.white, align: { indent: 1 }, border: rowBorder })
       style(row.getCell(12), { f: { size: 9 }, bg: C.white, align: { indent: 1 }, border: rowBorder })

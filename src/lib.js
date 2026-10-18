@@ -47,7 +47,14 @@ export const monthBounds = (ym) => {
   return { start: `${ym}-01`, end: `${ym}-${pad(last)}` }
 }
 
+export const nowTime = () => {
+  const d = new Date()
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export const fmtDate = (iso) => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '—')
+
+export const fmtDateTime = (iso, hhmm) => (iso && hhmm ? `${fmtDate(iso)} ${hhmm}` : fmtDate(iso))
 
 export const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5)
 

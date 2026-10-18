@@ -94,6 +94,13 @@ async function currentProfile(request, env) {
 /* ---------- validation ---------- */
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
+
+const time = (v, field) => {
+  if (!v) return null
+  if (!HHMM.test(v)) throw new HttpError(400, `Heure de ${field} invalide.`)
+  return v
+}
 
 const text = (v, max, field, required = false) => {
   const s = typeof v === 'string' ? v.trim() : ''
@@ -117,6 +124,10 @@ function cleanTask(body) {
   if (end && !ISO_DATE.test(end)) throw new HttpError(400, 'Date de fin invalide.')
   if (end && end < start) throw new HttpError(400, 'La date de fin doit être postérieure à la date de début.')
   if (status === 'terminee' && !end) end = new Date().toISOString().slice(0, 10)
+  const startTime = time(body.start_time, 'début')
+  const endTime = end ? time(body.end_time, 'fin') : null
+  if (end === start && startTime && endTime && endTime < startTime)
+    throw new HttpError(400, "L'heure de fin doit être postérieure à l'heure de début.")
   let progress = Math.round(Number(body.progress) || 0)
   progress = Math.min(100, Math.max(0, progress))
   if (status === 'terminee') progress = 100
@@ -127,7 +138,9 @@ function cleanTask(body) {
     title: text(body.title, 300, 'Tâche', true),
     beneficiary: text(body.beneficiary, 200, 'Pour qui'),
     start_date: start,
+    start_time: startTime,
     end_date: end,
+    end_time: endTime,
     status,
     progress,
     count,
@@ -232,10 +245,10 @@ async function handleApi(request, env, url) {
   if (pathname === '/api/tasks' && method === 'POST') {
     const t = cleanTask(await readJson(request))
     const row = await env.DB.prepare(
-      `INSERT INTO tasks (profile_id, category, subcategory, title, beneficiary, start_date, end_date, status, progress, count, details, highlight)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      `INSERT INTO tasks (profile_id, category, subcategory, title, beneficiary, start_date, start_time, end_date, end_time, status, progress, count, details, highlight)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
     )
-      .bind(me.id, t.category, t.subcategory, t.title, t.beneficiary, t.start_date, t.end_date, t.status, t.progress, t.count, t.details, t.highlight)
+      .bind(me.id, t.category, t.subcategory, t.title, t.beneficiary, t.start_date, t.start_time, t.end_date, t.end_time, t.status, t.progress, t.count, t.details, t.highlight)
       .first()
     return json({ task: { ...row, profile_name: me.name } }, 201)
   }
@@ -250,10 +263,10 @@ async function handleApi(request, env, url) {
     if (method === 'PUT') {
       const t = cleanTask(await readJson(request))
       const row = await env.DB.prepare(
-        `UPDATE tasks SET category = ?, subcategory = ?, title = ?, beneficiary = ?, start_date = ?, end_date = ?, status = ?,
-         progress = ?, count = ?, details = ?, highlight = ?, updated_at = datetime('now') WHERE id = ? RETURNING *`,
+        `UPDATE tasks SET category = ?, subcategory = ?, title = ?, beneficiary = ?, start_date = ?, start_time = ?, end_date = ?,
+         end_time = ?, status = ?, progress = ?, count = ?, details = ?, highlight = ?, updated_at = datetime('now') WHERE id = ? RETURNING *`,
       )
-        .bind(t.category, t.subcategory, t.title, t.beneficiary, t.start_date, t.end_date, t.status, t.progress, t.count, t.details, t.highlight, id)
+        .bind(t.category, t.subcategory, t.title, t.beneficiary, t.start_date, t.start_time, t.end_date, t.end_time, t.status, t.progress, t.count, t.details, t.highlight, id)
         .first()
       return json({ task: { ...row, profile_name: me.name } })
     }
@@ -276,12 +289,24 @@ function ensureSchema(env) {
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => env.DB.prepare(s))
-    schemaReady = env.DB.batch(statements).catch((err) => {
-      schemaReady = null
-      throw err
-    })
+    schemaReady = env.DB.batch(statements)
+      .then(() => addMissingColumns(env))
+      .catch((err) => {
+        schemaReady = null
+        throw err
+      })
   }
   return schemaReady
+}
+
+// Colonnes ajoutées après la mise en service : une base déjà créée les reçoit au premier appel.
+const LATER_COLUMNS = { start_time: 'TEXT', end_time: 'TEXT' }
+async function addMissingColumns(env) {
+  const { results } = await env.DB.prepare('PRAGMA table_info(tasks)').all()
+  const have = new Set(results.map((c) => c.name))
+  const missing = Object.keys(LATER_COLUMNS).filter((name) => !have.has(name))
+  if (missing.length)
+    await env.DB.batch(missing.map((name) => env.DB.prepare(`ALTER TABLE tasks ADD COLUMN ${name} ${LATER_COLUMNS[name]}`)))
 }
 
 export default {

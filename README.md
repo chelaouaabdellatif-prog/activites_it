@@ -3,7 +3,7 @@
 Application web de suivi des tâches et de génération des rapports d'activité mensuels de l'équipe informatique HPS.
 
 - **3 profils** : chaque membre crée son profil (nom, poste, mot de passe) à la première connexion.
-- **Tâches** : catégorie, sous-catégorie, dates de début et de fin, statut (en cours / en attente / terminée), avancement en %, nombre d'interventions, bénéficiaire, détails et ⭐ fait marquant.
+- **Tâches** : catégorie, sous-catégorie, dates et heures de début et de fin, statut (en cours / en attente / terminée), avancement en %, nombre d'interventions, bénéficiaire, détails et ⭐ fait marquant.
 - **Accueil** : taux de réalisation, tâches en cours et terminées, tâches en retard, répartition par catégorie, vue « Mes tâches » ou « Équipe IT ».
 - **Rapport mensuel** : Excel aux couleurs HPS (logo, police Exo 2) avec 3 feuilles : le mois détaillé, la synthèse et le planning (Gantt).
 

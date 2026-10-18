@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CATEGORIES, CATEGORY_BY_ID, STATUSES } from '../shared/catalog.js'
-import { todayIso } from '../lib.js'
+import { nowTime, todayIso } from '../lib.js'
 import { Modal } from './ui.jsx'
 
 const OTHER = '__autre__'
@@ -20,7 +20,9 @@ export default function TaskForm({ task, onSave, onClose }) {
     details: '',
     highlight: 0,
     ...task,
+    start_time: task.id ? task.start_time || '' : nowTime(),
     end_date: task.end_date || '',
+    end_time: task.end_time || '',
   }))
   const subs = CATEGORY_BY_ID[f.category]?.subs || []
   const [customSub, setCustomSub] = useState(() => !!task.subcategory && !subs.includes(task.subcategory))
@@ -35,16 +37,25 @@ export default function TaskForm({ task, onSave, onClose }) {
       ...x,
       status,
       progress: status === 'terminee' ? 100 : x.progress === 100 ? 80 : x.progress,
-      end_date: status === 'terminee' && !x.end_date ? todayIso() : x.end_date,
+      ...(status === 'terminee' && !x.end_date ? { end_date: todayIso(), end_time: x.end_time || nowTime() } : {}),
     }))
 
   async function submit(e) {
     e.preventDefault()
     setError('')
     if (f.end_date && f.end_date < f.start_date) return setError('La date de fin doit être postérieure à la date de début.')
+    if (f.end_date === f.start_date && f.start_time && f.end_time && f.end_time < f.start_time)
+      return setError("L'heure de fin doit être postérieure à l'heure de début.")
     setBusy(true)
     try {
-      await onSave({ ...f, end_date: f.end_date || null, progress: Number(f.progress), count: Number(f.count) })
+      await onSave({
+        ...f,
+        start_time: f.start_time || null,
+        end_date: f.end_date || null,
+        end_time: f.end_date ? f.end_time || null : null,
+        progress: Number(f.progress),
+        count: Number(f.count),
+      })
     } catch (err) {
       setError(err.message)
       setBusy(false)
@@ -113,11 +124,17 @@ export default function TaskForm({ task, onSave, onClose }) {
 
         <label className="field">
           <span>Date de début *</span>
-          <input className="input" type="date" {...bind('start_date')} required />
+          <div className="date-time">
+            <input className="input" type="date" {...bind('start_date')} required />
+            <input className="input" type="time" {...bind('start_time')} aria-label="Heure de début" />
+          </div>
         </label>
         <label className="field">
           <span>Date de fin {f.status === 'terminee' ? '(réelle)' : '(prévue)'}</span>
-          <input className="input" type="date" {...bind('end_date')} min={f.start_date} />
+          <div className="date-time">
+            <input className="input" type="date" {...bind('end_date')} min={f.start_date} />
+            <input className="input" type="time" {...bind('end_time')} disabled={!f.end_date} aria-label="Heure de fin" />
+          </div>
         </label>
 
         <div className="field full">
