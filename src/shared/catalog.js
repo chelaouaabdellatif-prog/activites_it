@@ -130,6 +130,12 @@ export const CATEGORIES = [
     subs: ['Présentation', 'Formation utilisateurs', 'Documentation / procédures', 'Traduction & analyse de fiches'],
   },
   {
+    id: 'doc',
+    label: 'Documentation IT',
+    icon: '📚',
+    subs: ['Mise à jour', "Rapport d'incident", 'Administration', 'Journal des changements', 'Alimentation'],
+  },
+  {
     id: 'gestion',
     label: 'Gestion / Direction',
     icon: '💼',
