@@ -5,7 +5,7 @@ import { Modal } from './ui.jsx'
 
 const OTHER = '__autre__'
 
-export default function TaskForm({ task, onSave, onClose }) {
+export default function TaskForm({ task, onSave, onDelete, onClose }) {
   const isNew = !task.id
   const [f, setF] = useState(() => ({
     category: 'helpdesk',
@@ -68,6 +68,11 @@ export default function TaskForm({ task, onSave, onClose }) {
       onClose={onClose}
       footer={
         <>
+          {!isNew && (
+            <button type="button" className="btn ghost danger" style={{ marginRight: 'auto' }} onClick={() => onDelete(task)} disabled={busy}>
+              Supprimer
+            </button>
+          )}
           <button type="button" className="btn ghost" onClick={onClose}>Annuler</button>
           <button className="btn primary" form="task-form" disabled={busy}>
             {busy ? 'Enregistrement…' : isNew ? 'Ajouter la tâche' : 'Enregistrer'}

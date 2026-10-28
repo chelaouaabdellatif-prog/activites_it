@@ -89,6 +89,7 @@ export default function App() {
     try {
       await api(`/api/tasks/${t.id}`, { method: 'DELETE' })
       setTasks((list) => list.filter((x) => x.id !== t.id))
+      setEditing((e) => (e?.id === t.id ? null : e))
       notify('Tâche supprimée')
     } catch (err) {
       handleError(err)
@@ -151,7 +152,7 @@ export default function App() {
         {view === 'rapport' && <Report me={profile} tasks={myTasks} month={month} setMonth={setMonth} notify={notify} />}
       </main>
 
-      {editing && <TaskForm task={editing} onSave={saveTask} onClose={() => setEditing(null)} />}
+      {editing && <TaskForm task={editing} onSave={saveTask} onDelete={deleteTask} onClose={() => setEditing(null)} />}
       {settings && (
         <Settings
           me={profile}

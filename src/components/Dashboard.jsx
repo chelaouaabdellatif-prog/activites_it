@@ -3,7 +3,7 @@ import { CATEGORIES } from '../shared/catalog.js'
 import { api, fmtDateTime, inMonth, initials, isLate, monthLabel, pct, stats } from '../lib.js'
 import { CategoryChip, Icon, MonthPicker, Progress, StatusChip } from './ui.jsx'
 
-function TaskItem({ t, me, showWho, onEdit, onComplete }) {
+function TaskItem({ t, me, showWho, onEdit, onComplete, onDelete }) {
   const mine = t.profile_id === me.id
   return (
     <div className="titem">
@@ -37,6 +37,9 @@ function TaskItem({ t, me, showWho, onEdit, onComplete }) {
             <button className="btn sm ghost icon-btn" onClick={() => onEdit(t)} aria-label="Modifier">
               <Icon name="edit" />
             </button>
+            <button className="btn sm ghost icon-btn danger" onClick={() => onDelete(t)} title="Supprimer" aria-label="Supprimer">
+              <Icon name="trash" />
+            </button>
           </span>
         )}
       </div>
@@ -44,7 +47,7 @@ function TaskItem({ t, me, showWho, onEdit, onComplete }) {
   )
 }
 
-export default function Dashboard({ me, tasks, month, setMonth, onEdit, onComplete, onNew }) {
+export default function Dashboard({ me, tasks, month, setMonth, onEdit, onComplete, onDelete, onNew }) {
   const [scope, setScope] = useState('me')
   const [slots, setSlots] = useState([])
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function Dashboard({ me, tasks, month, setMonth, onEdit, onComple
             <h2>⏳ Tâches en cours <span className="count-pill">{open.length}</span></h2>
           </div>
           <div className="card-b tlist">
-            {open.length ? open.map((t) => <TaskItem key={t.id} t={t} me={me} showWho={scope === 'team'} onEdit={onEdit} onComplete={onComplete} />) : <p className="empty-note">Aucune tâche en cours 🎉</p>}
+            {open.length ? open.map((t) => <TaskItem key={t.id} t={t} me={me} showWho={scope === 'team'} onEdit={onEdit} onComplete={onComplete} onDelete={onDelete} />) : <p className="empty-note">Aucune tâche en cours 🎉</p>}
           </div>
         </section>
         <section className="card">
@@ -156,7 +159,7 @@ export default function Dashboard({ me, tasks, month, setMonth, onEdit, onComple
             <h2>✅ Tâches terminées <span className="count-pill">{done.length}</span></h2>
           </div>
           <div className="card-b tlist">
-            {done.length ? done.map((t) => <TaskItem key={t.id} t={t} me={me} showWho={scope === 'team'} onEdit={onEdit} onComplete={onComplete} />) : <p className="empty-note">Aucune tâche terminée ce mois-ci.</p>}
+            {done.length ? done.map((t) => <TaskItem key={t.id} t={t} me={me} showWho={scope === 'team'} onEdit={onEdit} onComplete={onComplete} onDelete={onDelete} />) : <p className="empty-note">Aucune tâche terminée ce mois-ci.</p>}
           </div>
         </section>
       </div>
